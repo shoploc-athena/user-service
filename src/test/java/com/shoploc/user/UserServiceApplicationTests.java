@@ -11,7 +11,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 class UserServiceApplicationTests {
 
 	@Container
-	static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
+	static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16")
 		.withDatabaseName("user_lille");
 
 	@Test
