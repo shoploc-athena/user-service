@@ -8,19 +8,19 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
 
-	private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
+	private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
 
 	static {
 		POSTGRES.start();
 	}
 
-	public static PostgreSQLContainer postgres() {
+	public static PostgreSQLContainer<?> postgres() {
 		return POSTGRES;
 	}
 
 	@Bean
 	@ServiceConnection
-	PostgreSQLContainer postgresContainer() {
+	PostgreSQLContainer<?> postgresContainer() {
 		return POSTGRES;
 	}
 }
