@@ -7,6 +7,7 @@ import java.util.UUID;
 @Table(name = "app_user")
 public class AppUser {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     @Column(nullable = false, unique = true, length = 255)
     private String email;
