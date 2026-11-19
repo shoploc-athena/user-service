@@ -31,7 +31,7 @@ jobs:
           cache: maven     # reuse downloaded dependencies
 
       - name: Build and test
-        run: ./mvnw -B verify -DskipTests
+        run: ./mvnw -B verify
 
       - name: SonarCloud analysis
         # Secrets are not available to pull requests from forks
