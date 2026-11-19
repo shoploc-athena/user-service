@@ -1,12 +1,12 @@
 package com.shoploc.user.repository;
 
 import static org.assertj.core.api.Assertions.*;
-import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataIntegrityViolationException;
+
 import org.springframework.transaction.annotation.Transactional;
 import com.shoploc.user.entity.AppUser;
 import com.shoploc.user.entity.UserRole;
