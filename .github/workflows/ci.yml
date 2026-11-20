@@ -34,7 +34,8 @@ jobs:
         run: ./mvnw -B verify
 
       - name: SonarCloud analysis
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        # Secrets are not available to pull requests from forks
+        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
         run: ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

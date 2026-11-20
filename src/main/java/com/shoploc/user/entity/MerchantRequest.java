@@ -1,14 +1,13 @@
 package com.shoploc.user.entity;
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "merchant_request", indexes = {@Index(name = "idx_merchant_request_user_id", columnList = "user_id"), @Index(name = "idx_merchant_request_status", columnList = "status")})
 public class MerchantRequest {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser user;
@@ -44,8 +43,8 @@ public class MerchantRequest {
             reviewedAt = OffsetDateTime.now();
         }
     }
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public AppUser getUser() { return user; }
     public void setUser(AppUser user) { this.user = user; }
     public String getStoreName() { return storeName; }

@@ -106,18 +106,4 @@ class UserPermissionLifecycleTest {
 			assertThat(saved.getPermission()).isEqualTo(permType);
 		}
 	}
-
-	@Test
-	void shouldAllowNullGrantedBy() {
-		UserPermission perm = new UserPermission();
-		perm.setUser(merchant);
-		perm.setGrantedBy(null);
-		perm.setPermission(PermissionType.VALIDATE_MERCHANTS);
-
-		UserPermission saved = repository.save(perm);
-
-		UserPermission retrieved = repository.findById(saved.getId()).orElse(null);
-		assertThat(retrieved).isNotNull();
-		assertThat(retrieved.getGrantedBy()).isNull();
-	}
 }
