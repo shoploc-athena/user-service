@@ -36,6 +36,13 @@ public class MerchantRequest {
     }
     @PrePersist
     protected void onCreate() { createdAt = OffsetDateTime.now(); }
+
+    @PreUpdate
+    protected void onUpdate() {
+        if (reviewedBy != null && reviewedAt == null) {
+            reviewedAt = OffsetDateTime.now();
+        }
+    }
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public AppUser getUser() { return user; }

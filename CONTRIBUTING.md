@@ -12,7 +12,7 @@ Thank you for contributing to ShopLoc. This guide describes how we work so that 
    git switch -c feature/SHOP-12-product-list
 ```
 3. Work in small commits.
-4. Push the branch and open a **pull request** into `develop`.
+4. Push the branch and open a **pull request** into `develop`.(ADD IN THE PR DESCRIPTOTION ITS NUMBER)
 5. Wait for the CI to pass and for **one approval**.
 6. Merge with **Squash and merge**, then delete the branch.
 
