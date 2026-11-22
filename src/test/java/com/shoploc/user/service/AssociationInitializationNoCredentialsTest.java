@@ -44,7 +44,7 @@ class AssociationInitializationNoCredentialsTest {
 	@Test
 	void testNothingCreatedWithMissingEmail() {
 		long userCountBefore = appUserRepository.count();
-
+ 
 		service.initializeFirstAssociationAccount();
 
 		long userCountAfter = appUserRepository.count();

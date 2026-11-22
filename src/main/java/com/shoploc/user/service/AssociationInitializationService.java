@@ -51,8 +51,13 @@ public class AssociationInitializationService {
 			return;
 		}
 
-		if (appUserRepository.findByRole(UserRole.ASSOCIATION).isPresent()) {
+		if (appUserRepository.existsByRole(UserRole.ASSOCIATION)) {
 			logger.debug("Association account already exists");
+			return;
+		}
+
+		if (appUserRepository.findByEmail(associationAdminEmail).isPresent()) {
+			logger.debug("Email already exists, skipping association account creation");
 			return;
 		}
 
@@ -66,12 +71,12 @@ public class AssociationInitializationService {
 			associationAdmin.setStatus(UserStatus.ACTIVE);
 			associationAdmin.setEmailVerified(true);
 
-			AppUser savedUser = appUserRepository.save(associationAdmin);
+			AppUser savedUser = appUserRepository.saveAndFlush(associationAdmin);
 			logger.info("Association account created with ID: {}", savedUser.getId());
 
 			createPermissions(savedUser);
 		} catch (DataIntegrityViolationException e) {
-			logger.debug("Association account was created by another instance during startup");
+			logger.debug("Association account creation failed due to concurrent startup or constraint violation");
 		}
 	}
 

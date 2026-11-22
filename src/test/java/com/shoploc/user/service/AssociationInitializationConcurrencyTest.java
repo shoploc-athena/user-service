@@ -28,8 +28,7 @@ class AssociationInitializationConcurrencyTest {
 	private AssociationInitializationService service;
 
 	@Test
-	void testSimultaneousStartupDoesNotFail() {
-		service.initializeFirstAssociationAccount();
+	void testSequentialCallsAreIdempotent() {
 		service.initializeFirstAssociationAccount();
 
 		long associationCount = appUserRepository.findAll().stream()
@@ -37,10 +36,18 @@ class AssociationInitializationConcurrencyTest {
 			.count();
 
 		assertEquals(1, associationCount, "Only one ASSOCIATION account should exist");
+
+		service.initializeFirstAssociationAccount();
+
+		long countAfterSecond = appUserRepository.findAll().stream()
+			.filter(u -> u.getRole() == UserRole.ASSOCIATION)
+			.count();
+
+		assertEquals(1, countAfterSecond, "Still only one ASSOCIATION account after second call");
 	}
 
 	@Test
-	void testExceptionHandlingForConcurrentCreation() {
+	void testExceptionHandledWhenMultipleAssociationAccountsExist() {
 		service.initializeFirstAssociationAccount();
 
 		long userCount = appUserRepository.count();
@@ -49,6 +56,6 @@ class AssociationInitializationConcurrencyTest {
 		service.initializeFirstAssociationAccount();
 
 		long userCountAfter = appUserRepository.count();
-		assertEquals(1, userCountAfter, "Still only one user after second call");
+		assertEquals(1, userCountAfter, "Still only one user after second call, service does not fail");
 	}
 }

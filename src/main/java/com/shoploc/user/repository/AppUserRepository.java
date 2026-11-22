@@ -10,5 +10,5 @@ import com.shoploc.user.entity.UserRole;
 @Repository
 public interface AppUserRepository extends JpaRepository<AppUser, UUID> {
 	Optional<AppUser> findByEmail(String email);
-	Optional<AppUser> findByRole(UserRole role);
+	boolean existsByRole(UserRole role);
 }

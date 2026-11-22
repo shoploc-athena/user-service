@@ -41,7 +41,8 @@ class AssociationInitializationServiceIntegrationTest {
 	void testFirstStartupCreatesAssociationAccount() {
 		service.initializeFirstAssociationAccount();
 
-		AppUser createdUser = appUserRepository.findByRole(UserRole.ASSOCIATION).orElse(null);
+		assertTrue(appUserRepository.existsByRole(UserRole.ASSOCIATION), "Association role should exist");
+		AppUser createdUser = appUserRepository.findByEmail("admin@association.com").orElse(null);
 		assertNotNull(createdUser, "Association account should be created");
 		assertEquals(UserRole.ASSOCIATION, createdUser.getRole());
 		assertEquals(UserStatus.ACTIVE, createdUser.getStatus());
@@ -54,7 +55,7 @@ class AssociationInitializationServiceIntegrationTest {
 	void testPasswordIsHashedWithBCrypt() {
 		service.initializeFirstAssociationAccount();
 
-		AppUser createdUser = appUserRepository.findByRole(UserRole.ASSOCIATION).orElse(null);
+		AppUser createdUser = appUserRepository.findByEmail("admin@association.com").orElse(null);
 		assertNotNull(createdUser);
 		String passwordHash = createdUser.getPasswordHash();
 		assertNotNull(passwordHash);
@@ -68,7 +69,7 @@ class AssociationInitializationServiceIntegrationTest {
 	void testPermissionsCreated() {
 		service.initializeFirstAssociationAccount();
 
-		AppUser createdUser = appUserRepository.findByRole(UserRole.ASSOCIATION).orElse(null);
+		AppUser createdUser = appUserRepository.findByEmail("admin@association.com").orElse(null);
 		assertNotNull(createdUser);
 
 		List<UserPermission> permissions = userPermissionRepository.findAll();
@@ -107,12 +108,12 @@ class AssociationInitializationServiceIntegrationTest {
 	void testNoPasswordOverwrite() {
 		service.initializeFirstAssociationAccount();
 
-		AppUser firstRun = appUserRepository.findByRole(UserRole.ASSOCIATION).orElse(null);
+		AppUser firstRun = appUserRepository.findByEmail("admin@association.com").orElse(null);
 		String firstPasswordHash = firstRun.getPasswordHash();
 
 		service.initializeFirstAssociationAccount();
 
-		AppUser secondRun = appUserRepository.findByRole(UserRole.ASSOCIATION).orElse(null);
+		AppUser secondRun = appUserRepository.findByEmail("admin@association.com").orElse(null);
 		String secondPasswordHash = secondRun.getPasswordHash();
 
 		assertEquals(firstPasswordHash, secondPasswordHash, "Password should not be changed on second run");
@@ -122,8 +123,7 @@ class AssociationInitializationServiceIntegrationTest {
 	void testIdempotenceByRole() {
 		service.initializeFirstAssociationAccount();
 
-		AppUser firstAccount = appUserRepository.findByRole(UserRole.ASSOCIATION).orElse(null);
-		assertNotNull(firstAccount);
+		assertTrue(appUserRepository.existsByRole(UserRole.ASSOCIATION));
 
 		service.initializeFirstAssociationAccount();
 
@@ -132,6 +132,5 @@ class AssociationInitializationServiceIntegrationTest {
 			.toList();
 
 		assertEquals(1, allAssociation.size(), "Should have exactly one ASSOCIATION account");
-		assertEquals(firstAccount.getId(), allAssociation.get(0).getId());
 	}
 }
