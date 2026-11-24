@@ -37,6 +37,25 @@ curl http://localhost:8080/actuator/health
 
 Expected response: `{"status":"UP"}`
 
+## Authentication
+
+`POST /api/users/auth/login` with `{ "email": "...", "password": "..." }`.
+
+* `200`: `{ accessToken, tokenType: "Bearer", expiresIn }` (`expiresIn` in seconds)
+* `401`: wrong email or password (same answer in both cases)
+* `403`: account not allowed to log in, with `code` = `ACCOUNT_PENDING` (for a merchant: also
+  `merchantRequestStatus` and `refusalReason`) or `ACCOUNT_DISABLED`
+
+The token is signed with HS256 and carries `sub`, `city`, `role`, `permissions`, `iat`, `exp`.
+
+Required environment variables (the service refuses to start without them):
+
+| Variable | Description |
+|---|---|
+| `JWT_SECRET` | Secret shared by all services, at least 32 bytes. Never commit it. |
+| `CITY` | City of this instance, written in every token and checked on each request. |
+| `JWT_EXPIRATION_MINUTES` | Optional, 15 by default. |
+
 ## Branching and commits
 
 - `main`: release branch only.
