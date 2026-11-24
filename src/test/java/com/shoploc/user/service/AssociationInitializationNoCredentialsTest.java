@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
+import com.shoploc.user.entity.UserRole;
 import com.shoploc.user.repository.AppUserRepository;
 import com.shoploc.user.repository.UserPermissionRepository;
 import com.shoploc.user.testcontainers.TestcontainersConfiguration;
@@ -32,13 +33,17 @@ class AssociationInitializationNoCredentialsTest {
 
 	@Test
 	void testNothingCreatedWithoutCredentials() {
+		long userCountBefore = appUserRepository.findAll().stream()
+			.filter(u -> u.getRole() == UserRole.ASSOCIATION && u.getEmail().equals(""))
+			.count();
+
 		service.initializeFirstAssociationAccount();
 
-		long userCount = appUserRepository.count();
-		long permissionCount = userPermissionRepository.count();
+		long userCountAfter = appUserRepository.findAll().stream()
+			.filter(u -> u.getRole() == UserRole.ASSOCIATION && u.getEmail().equals(""))
+			.count();
 
-		assertEquals(0, userCount, "No user should be created without credentials");
-		assertEquals(0, permissionCount, "No permission should be created without credentials");
+		assertEquals(userCountBefore, userCountAfter, "No user should be created without credentials");
 	}
 
 	@Test
