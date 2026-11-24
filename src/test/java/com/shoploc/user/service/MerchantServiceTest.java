@@ -10,6 +10,7 @@ import com.shoploc.user.dto.AppUserResponse;
 import com.shoploc.user.dto.MerchantSignUpRequest;
 import com.shoploc.user.entity.UserRole;
 import com.shoploc.user.entity.UserStatus;
+import com.shoploc.user.exception.EmailAlreadyExistsException;
 import com.shoploc.user.repository.AppUserRepository;
 import com.shoploc.user.repository.MerchantRequestRepository;
 import com.shoploc.user.testcontainers.TestcontainersConfiguration;
@@ -83,7 +84,7 @@ class MerchantServiceTest {
 		);
 
 		assertThatThrownBy(() -> merchantService.signUpMerchant(request2))
-			.isInstanceOf(IllegalArgumentException.class)
+			.isInstanceOf(EmailAlreadyExistsException.class)
 			.hasMessageContaining("Email already exists");
 	}
 

@@ -30,12 +30,12 @@ class AppUserConstraintsTest {
 		user.setStatus(UserStatus.ACTIVE);
 
 		assertThatThrownBy(() -> {
-			repository.save(user);
+			repository.saveAndFlush(user);
 		}).isInstanceOf(DataIntegrityViolationException.class);
 	}
 
 	@Test
-	void shouldRejectInvalidRole() {
+	void shouldRejectNullRole() {
 		AppUser user = new AppUser();
 		user.setEmail("test@example.com");
 		user.setPasswordHash("pass");
@@ -44,12 +44,12 @@ class AppUserConstraintsTest {
 		user.setStatus(UserStatus.ACTIVE);
 
 		assertThatThrownBy(() -> {
-			repository.save(user);
-		}).isInstanceOf(Exception.class);
+			repository.saveAndFlush(user);
+		}).isInstanceOf(DataIntegrityViolationException.class);
 	}
 
 	@Test
-	void shouldRejectInvalidStatus() {
+	void shouldRejectNullStatus() {
 		AppUser user = new AppUser();
 		user.setEmail("test@example.com");
 		user.setPasswordHash("pass");
@@ -58,8 +58,8 @@ class AppUserConstraintsTest {
 		user.setRole(UserRole.CUSTOMER);
 
 		assertThatThrownBy(() -> {
-			repository.save(user);
-		}).isInstanceOf(Exception.class);
+			repository.saveAndFlush(user);
+		}).isInstanceOf(DataIntegrityViolationException.class);
 	}
 
 	@Test

@@ -1,11 +1,27 @@
 package com.shoploc.user.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class MerchantSignUpRequest {
+	@NotBlank
+	@Email
+	@Size(max = 255)
 	private String email;
+	@NotBlank
 	private String password;
+	@NotBlank
+	@Size(max = 100)
 	private String firstName;
+	@NotBlank
+	@Size(max = 100)
 	private String lastName;
+	@NotBlank
+	@Size(max = 150)
 	private String storeName;
+	@NotBlank
+	@Size(max = 255)
 	private String storeAddress;
 
 	public MerchantSignUpRequest() {}

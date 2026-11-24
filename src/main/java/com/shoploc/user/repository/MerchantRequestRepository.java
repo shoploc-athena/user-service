@@ -1,10 +1,12 @@
 package com.shoploc.user.repository;
 
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import com.shoploc.user.entity.MerchantRequest;
-import java.util.UUID;
 
 @Repository
 public interface MerchantRequestRepository extends JpaRepository<MerchantRequest, UUID> {
+    Optional<MerchantRequest> findFirstByUser_IdOrderByCreatedAtDesc(UUID userId);
 }
