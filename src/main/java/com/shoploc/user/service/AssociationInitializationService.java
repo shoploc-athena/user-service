@@ -38,8 +38,16 @@ public class AssociationInitializationService {
 		this.passwordEncoder = passwordEncoder;
 	}
 
-	@Transactional
 	public void initializeFirstAssociationAccount() {
+		try {
+			initializeFirstAssociationAccountTransactional();
+		} catch (DataIntegrityViolationException e) {
+			logger.debug("Association account creation failed due to concurrent startup or constraint violation");
+		}
+	}
+
+	@Transactional
+	private void initializeFirstAssociationAccountTransactional() {
 		if (associationAdminEmail == null || associationAdminEmail.isBlank() ||
 			associationAdminPassword == null || associationAdminPassword.isBlank()) {
 			logger.error("Association admin credentials not provided in environment variables");
@@ -61,23 +69,19 @@ public class AssociationInitializationService {
 			return;
 		}
 
-		try {
-			AppUser associationAdmin = new AppUser();
-			associationAdmin.setEmail(associationAdminEmail);
-			associationAdmin.setPasswordHash(passwordEncoder.encode(associationAdminPassword));
-			associationAdmin.setFirstName("Association");
-			associationAdmin.setLastName("Admin");
-			associationAdmin.setRole(UserRole.ASSOCIATION);
-			associationAdmin.setStatus(UserStatus.ACTIVE);
-			associationAdmin.setEmailVerified(true);
+		AppUser associationAdmin = new AppUser();
+		associationAdmin.setEmail(associationAdminEmail);
+		associationAdmin.setPasswordHash(passwordEncoder.encode(associationAdminPassword));
+		associationAdmin.setFirstName("Association");
+		associationAdmin.setLastName("Admin");
+		associationAdmin.setRole(UserRole.ASSOCIATION);
+		associationAdmin.setStatus(UserStatus.ACTIVE);
+		associationAdmin.setEmailVerified(true);
 
-			AppUser savedUser = appUserRepository.saveAndFlush(associationAdmin);
-			logger.info("Association account created with ID: {}", savedUser.getId());
+		AppUser savedUser = appUserRepository.saveAndFlush(associationAdmin);
+		logger.info("Association account created with ID: {}", savedUser.getId());
 
-			createPermissions(savedUser);
-		} catch (DataIntegrityViolationException e) {
-			logger.debug("Association account creation failed due to concurrent startup or constraint violation");
-		}
+		createPermissions(savedUser);
 	}
 
 	private void createPermissions(AppUser user) {

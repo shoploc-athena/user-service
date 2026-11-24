@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
-import com.shoploc.user.entity.UserRole;
+
 import com.shoploc.user.repository.AppUserRepository;
 import com.shoploc.user.repository.UserPermissionRepository;
 import com.shoploc.user.testcontainers.TestcontainersConfiguration;
