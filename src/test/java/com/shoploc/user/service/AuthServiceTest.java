@@ -73,16 +73,18 @@ class AuthServiceTest {
     @Test
     void unknownEmailGivesInvalidCredentials() {
         when(appUserRepository.findByEmail("nobody@example.org")).thenReturn(Optional.empty());
+        LoginRequest request = new LoginRequest("nobody@example.org", PASSWORD);
 
-        assertThatThrownBy(() -> authService.login(new LoginRequest("nobody@example.org", PASSWORD)))
+        assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(InvalidCredentialsException.class);
     }
 
     @Test
     void wrongPasswordGivesInvalidCredentials() {
         user(UserRole.CUSTOMER, UserStatus.ACTIVE);
+        LoginRequest request = new LoginRequest("user@example.org", "wrong");
 
-        assertThatThrownBy(() -> authService.login(new LoginRequest("user@example.org", "wrong")))
+        assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(InvalidCredentialsException.class);
     }
 
@@ -118,13 +120,14 @@ class AuthServiceTest {
     @Test
     void refusedMerchantGetsPendingErrorWithReason() {
         AppUser user = user(UserRole.MERCHANT, UserStatus.PENDING);
-        MerchantRequest request = new MerchantRequest();
-        request.setStatus(MerchantRequestStatus.REFUSED);
-        request.setRefusalReason("Store address not found");
+        MerchantRequest merchantRequest = new MerchantRequest();
+        merchantRequest.setStatus(MerchantRequestStatus.REFUSED);
+        merchantRequest.setRefusalReason("Store address not found");
         when(merchantRequestRepository.findFirstByUser_IdOrderByCreatedAtDesc(user.getId()))
-                .thenReturn(Optional.of(request));
+                .thenReturn(Optional.of(merchantRequest));
+        LoginRequest request = new LoginRequest("user@example.org", PASSWORD);
 
-        assertThatThrownBy(() -> authService.login(new LoginRequest("user@example.org", PASSWORD)))
+        assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOfSatisfying(AccountNotActiveException.class, e -> {
                     assertThat(e.getCode()).isEqualTo("ACCOUNT_PENDING");
                     assertThat(e.getMerchantRequestStatus()).isEqualTo(MerchantRequestStatus.REFUSED);
@@ -135,8 +138,9 @@ class AuthServiceTest {
     @Test
     void disabledAccountIsRefused() {
         user(UserRole.CUSTOMER, UserStatus.DISABLED);
+        LoginRequest request = new LoginRequest("user@example.org", PASSWORD);
 
-        assertThatThrownBy(() -> authService.login(new LoginRequest("user@example.org", PASSWORD)))
+        assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOfSatisfying(AccountNotActiveException.class,
                         e -> assertThat(e.getCode()).isEqualTo("ACCOUNT_DISABLED"));
     }
