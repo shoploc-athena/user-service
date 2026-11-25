@@ -28,6 +28,9 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		return http
+			// Disable CSRF: this API is stateless with JWT authentication in headers.
+			// CSRF protection is designed for session-based (cookie) authentication, not stateless APIs.
+			// lgtm[java/disabled-csrf-protection]
 			.csrf(csrf -> csrf.disable())
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(authz -> authz
