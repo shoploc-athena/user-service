@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicReference;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +13,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 import com.shoploc.user.entity.UserRole;
 import com.shoploc.user.repository.AppUserRepository;
+import com.shoploc.user.repository.UserPermissionRepository;
 import com.shoploc.user.testcontainers.TestcontainersConfiguration;
 
 @SpringBootTest
@@ -26,7 +28,16 @@ class AssociationInitializationConcurrentThreadTest {
 	private AppUserRepository appUserRepository;
 
 	@Autowired
+	private UserPermissionRepository userPermissionRepository;
+
+	@Autowired
 	private AssociationInitializationService service;
+
+	@AfterEach
+	void cleanup() {
+		userPermissionRepository.deleteAll();
+		appUserRepository.deleteAll();
+	}
 
 	@Test
 	@Transactional

@@ -3,8 +3,7 @@ package com.shoploc.user.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.shoploc.user.entity.AppUser;
@@ -22,7 +21,7 @@ public class AssociationInitializationService {
 
 	private final AppUserRepository appUserRepository;
 	private final UserPermissionRepository userPermissionRepository;
-	private final BCryptPasswordEncoder passwordEncoder;
+	private final PasswordEncoder passwordEncoder;
 
 	@Value("${ASSOCIATION_ADMIN_EMAIL:}")
 	private String associationAdminEmail;
@@ -32,22 +31,14 @@ public class AssociationInitializationService {
 
 	public AssociationInitializationService(AppUserRepository appUserRepository,
 											UserPermissionRepository userPermissionRepository,
-											BCryptPasswordEncoder passwordEncoder) {
+											PasswordEncoder passwordEncoder) {
 		this.appUserRepository = appUserRepository;
 		this.userPermissionRepository = userPermissionRepository;
 		this.passwordEncoder = passwordEncoder;
 	}
 
-	public void initializeFirstAssociationAccount() {
-		try {
-			initializeFirstAssociationAccountTransactional();
-		} catch (DataIntegrityViolationException e) {
-			logger.debug("Association account creation failed due to concurrent startup or constraint violation");
-		}
-	}
-
 	@Transactional
-	private void initializeFirstAssociationAccountTransactional() {
+	public void initializeFirstAssociationAccount() {
 		if (associationAdminEmail == null || associationAdminEmail.isBlank() ||
 			associationAdminPassword == null || associationAdminPassword.isBlank()) {
 			logger.error("Association admin credentials not provided in environment variables");
