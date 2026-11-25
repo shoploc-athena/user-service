@@ -10,6 +10,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.BadJwtException;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -54,7 +56,16 @@ public class SecurityConfig {
 	public JwtDecoder jwtDecoder(ShoplocProperties properties) {
 		byte[] keyBytes = properties.jwt().secret().getBytes();
 		SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "HmacSHA256");
-		return NimbusJwtDecoder.withSecretKey(secretKey).build();
+		NimbusJwtDecoder baseDecoder = NimbusJwtDecoder.withSecretKey(secretKey).build();
+
+		return token -> {
+			Jwt jwt = baseDecoder.decode(token);
+			String tokenCity = jwt.getClaimAsString("city");
+			if (!properties.city().equals(tokenCity)) {
+				throw new BadJwtException("Token city does not match configured city");
+			}
+			return jwt;
+		};
 	}
 
 	@Bean
