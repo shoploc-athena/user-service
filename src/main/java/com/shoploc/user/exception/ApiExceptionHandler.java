@@ -2,6 +2,7 @@ package com.shoploc.user.exception;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -50,6 +51,13 @@ public class ApiExceptionHandler {
             .toList();
         problem.setProperty("code", "VALIDATION_ERROR");
         problem.setProperty("errors", errors);
+        return problem;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, "Email already exists");
+        problem.setProperty("code", "EMAIL_ALREADY_EXISTS");
         return problem;
     }
 }

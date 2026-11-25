@@ -1,10 +1,13 @@
 package com.shoploc.user.service;
 
 import static org.assertj.core.api.Assertions.*;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 import com.shoploc.user.dto.MerchantSignUpRequest;
 import com.shoploc.user.dto.MerchantSignUpResponse;
@@ -132,5 +135,53 @@ class MerchantServiceTest {
 		var pendingReq = merchantRequestRepository.findByUser(pendingUser);
 		assertThat(pendingReq).isPresent();
 		assertThat(pendingReq.get().getStoreName()).isEqualTo("Boutique");
+	}
+
+	@Test
+	void shouldHandleSimultaneousSignupWithSameEmailAs409() throws Exception {
+		CyclicBarrier barrier = new CyclicBarrier(2);
+		AtomicReference<Exception> thread1Exception = new AtomicReference<>();
+		AtomicReference<Exception> thread2Exception = new AtomicReference<>();
+
+		Thread t1 = new Thread(() -> {
+			try {
+				barrier.await();
+				merchantService.signUpMerchant(new MerchantSignUpRequest(
+					"concurrent@test.com", "securepassword123",
+					"John", "Doe", "Store1", "Address1"
+				));
+			} catch (Exception e) {
+				thread1Exception.set(e);
+			}
+		});
+
+		Thread t2 = new Thread(() -> {
+			try {
+				barrier.await();
+				merchantService.signUpMerchant(new MerchantSignUpRequest(
+					"concurrent@test.com", "securepassword456",
+					"Jane", "Smith", "Store2", "Address2"
+				));
+			} catch (Exception e) {
+				thread2Exception.set(e);
+			}
+		});
+
+		t1.start();
+		t2.start();
+		t1.join();
+		t2.join();
+
+		// One thread should succeed, the other should fail with DataIntegrityViolationException
+		boolean t1Failed = thread1Exception.get() instanceof DataIntegrityViolationException;
+		boolean t2Failed = thread2Exception.get() instanceof DataIntegrityViolationException;
+		assertThat(t1Failed || t2Failed).isTrue();
+		assertThat(t1Failed && t2Failed).isFalse(); // Only one should fail
+
+		// Verify data is consistent: 1 user, 1 merchant request
+		var user = appUserRepository.findByEmail("concurrent@test.com");
+		assertThat(user).isPresent();
+		var merchantReq = merchantRequestRepository.findByUser(user.get());
+		assertThat(merchantReq).isPresent();
 	}
 }

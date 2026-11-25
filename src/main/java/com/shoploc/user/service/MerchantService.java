@@ -1,7 +1,7 @@
 package com.shoploc.user.service;
 
+import java.util.Locale;
 import java.util.Optional;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,39 +33,31 @@ public class MerchantService {
 
 	@Transactional
 	public MerchantSignUpResponse signUpMerchant(MerchantSignUpRequest request) {
-		// Normalize email: trim and lowercase
-		String normalizedEmail = request.getEmail().trim().toLowerCase();
+		String normalizedEmail = request.getEmail().toLowerCase(Locale.ROOT);
 
-		// Check if email already exists
 		Optional<AppUser> existing = appUserRepository.findByEmail(normalizedEmail);
 		if (existing.isPresent()) {
 			throw new EmailAlreadyExistsException();
 		}
 
-		try {
-			// Create merchant user
-			AppUser merchant = new AppUser();
-			merchant.setEmail(normalizedEmail);
-			merchant.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-			merchant.setFirstName(request.getFirstName());
-			merchant.setLastName(request.getLastName());
-			merchant.setRole(UserRole.MERCHANT);
-			merchant.setStatus(UserStatus.PENDING);
-			merchant.setEmailVerified(false);
+		AppUser merchant = new AppUser();
+		merchant.setEmail(normalizedEmail);
+		merchant.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+		merchant.setFirstName(request.getFirstName());
+		merchant.setLastName(request.getLastName());
+		merchant.setRole(UserRole.MERCHANT);
+		merchant.setStatus(UserStatus.PENDING);
+		merchant.setEmailVerified(false);
 
-			AppUser savedMerchant = appUserRepository.save(merchant);
+		AppUser savedMerchant = appUserRepository.save(merchant);
 
-			// Create merchant request
-			MerchantRequest merchantRequest = new MerchantRequest();
-			merchantRequest.setUser(savedMerchant);
-			merchantRequest.setStoreName(request.getStoreName());
-			merchantRequest.setStoreAddress(request.getStoreAddress());
-			merchantRequest.setStatus(MerchantRequestStatus.PENDING);
-			MerchantRequest savedRequest = merchantRequestRepository.save(merchantRequest);
+		MerchantRequest merchantRequest = new MerchantRequest();
+		merchantRequest.setUser(savedMerchant);
+		merchantRequest.setStoreName(request.getStoreName());
+		merchantRequest.setStoreAddress(request.getStoreAddress());
+		merchantRequest.setStatus(MerchantRequestStatus.PENDING);
+		MerchantRequest savedRequest = merchantRequestRepository.save(merchantRequest);
 
-			return new MerchantSignUpResponse(savedRequest.getId(), savedRequest.getStatus());
-		} catch (DataIntegrityViolationException e) {
-			throw new EmailAlreadyExistsException();
-		}
+		return new MerchantSignUpResponse(savedRequest.getId(), savedRequest.getStatus());
 	}
 }

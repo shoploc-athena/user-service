@@ -132,4 +132,20 @@ class UserControllerTest {
 
 		verifyNoInteractions(merchantService);
 	}
+
+	@Test
+	void shouldAllowPublicAccessWithoutToken() throws Exception {
+		UUID requestId = UUID.randomUUID();
+		when(merchantService.signUpMerchant(any()))
+			.thenReturn(new MerchantSignUpResponse(requestId, MerchantRequestStatus.PENDING));
+
+		mockMvc.perform(post("/api/users/merchants")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"email":"merchant@example.com","password":"securepassword123",
+								"firstName":"Jane","lastName":"Doe","storeName":"Store",
+								"storeAddress":"1 Main Street"}
+								"""))
+				.andExpect(status().isCreated());
+	}
 }

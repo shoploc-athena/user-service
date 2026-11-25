@@ -42,7 +42,7 @@ Expected response: `{"status":"UP"}`
 `POST /api/users/merchants` (public endpoint) with `{ "email": "...", "password": "...", "firstName": "...", "lastName": "...", "storeName": "...", "storeAddress": "..." }`.
 
 **Request validation:**
-- `email`: required, valid email format, max 255 chars. Trimmed and lowercased before storage.
+- `email`: required, valid email format, max 255 chars. Lowercased before storage.
 - `password`: required, 12–72 chars. UTF-8 encoding must not exceed 72 bytes.
 - `firstName`, `lastName`: required, max 100 chars each.
 - `storeName`: required, max 150 chars.
@@ -53,7 +53,7 @@ Expected response: `{"status":"UP"}`
 - `400`: validation error (see `errors` array with field names and messages).
 - `409`: email already exists, `code` = `EMAIL_ALREADY_EXISTS`.
 
-The email is normalized (trimmed, lowercased) on both registration and login for consistency.
+The email is lowercased on both registration and login for consistency. Invalid email formats (e.g., with leading/trailing spaces) are rejected at validation.
 
 ## Authentication
 
