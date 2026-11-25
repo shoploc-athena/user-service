@@ -1,11 +1,12 @@
 package com.shoploc.user.service;
 
+import java.util.Locale;
 import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.shoploc.user.dto.AppUserResponse;
 import com.shoploc.user.dto.MerchantSignUpRequest;
+import com.shoploc.user.dto.MerchantSignUpResponse;
 import com.shoploc.user.entity.AppUser;
 import com.shoploc.user.entity.MerchantRequest;
 import com.shoploc.user.entity.MerchantRequestStatus;
@@ -31,16 +32,16 @@ public class MerchantService {
 	}
 
 	@Transactional
-	public AppUserResponse signUpMerchant(MerchantSignUpRequest request) {
-		// Vérifier que l'email n'existe pas
-		Optional<AppUser> existing = appUserRepository.findByEmail(request.getEmail());
+	public MerchantSignUpResponse signUpMerchant(MerchantSignUpRequest request) {
+		String normalizedEmail = request.getEmail().trim().toLowerCase(Locale.ROOT);
+
+		Optional<AppUser> existing = appUserRepository.findByEmail(normalizedEmail);
 		if (existing.isPresent()) {
 			throw new EmailAlreadyExistsException();
 		}
 
-		// Créer l'utilisateur commerçant
 		AppUser merchant = new AppUser();
-		merchant.setEmail(request.getEmail());
+		merchant.setEmail(normalizedEmail);
 		merchant.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 		merchant.setFirstName(request.getFirstName());
 		merchant.setLastName(request.getLastName());
@@ -50,25 +51,13 @@ public class MerchantService {
 
 		AppUser savedMerchant = appUserRepository.save(merchant);
 
-		// Créer la demande d'adhésion
 		MerchantRequest merchantRequest = new MerchantRequest();
 		merchantRequest.setUser(savedMerchant);
 		merchantRequest.setStoreName(request.getStoreName());
 		merchantRequest.setStoreAddress(request.getStoreAddress());
 		merchantRequest.setStatus(MerchantRequestStatus.PENDING);
-		merchantRequestRepository.save(merchantRequest);
+		MerchantRequest savedRequest = merchantRequestRepository.save(merchantRequest);
 
-		return toResponse(savedMerchant);
-	}
-
-	private AppUserResponse toResponse(AppUser user) {
-		return new AppUserResponse(
-				user.getId(),
-				user.getEmail(),
-				user.getFirstName(),
-				user.getLastName(),
-				user.getRole(),
-				user.getStatus()
-		);
+		return new MerchantSignUpResponse(savedRequest.getId(), savedRequest.getStatus());
 	}
 }

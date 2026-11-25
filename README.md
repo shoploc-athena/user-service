@@ -37,6 +37,24 @@ curl http://localhost:8080/actuator/health
 
 Expected response: `{"status":"UP"}`
 
+## Merchant Registration
+
+`POST /api/users/merchants` (public endpoint) with `{ "email": "...", "password": "...", "firstName": "...", "lastName": "...", "storeName": "...", "storeAddress": "..." }`.
+
+**Request validation:**
+- `email`: required, valid email format, max 255 chars. Trimmed and lowercased before storage.
+- `password`: required, 12–72 chars. UTF-8 encoding must not exceed 72 bytes.
+- `firstName`, `lastName`: required, max 100 chars each.
+- `storeName`: required, max 150 chars.
+- `storeAddress`: required, max 255 chars.
+
+**Responses:**
+- `201`: `{ requestId, status: "PENDING" }` — merchant account created, pending association approval.
+- `400`: validation error (see `errors` array with field names and messages).
+- `409`: email already exists, `code` = `EMAIL_ALREADY_EXISTS`.
+
+The email is trimmed and lowercased on both registration and login for consistency. Invalid email formats (e.g., with leading/trailing spaces) are rejected at validation layer.
+
 ## Authentication
 
 `POST /api/users/auth/login` with `{ "email": "...", "password": "..." }`.

@@ -1,7 +1,11 @@
 package com.shoploc.user.exception;
 
+import java.util.List;
+import java.util.Map;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -32,6 +36,27 @@ public class ApiExceptionHandler {
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ProblemDetail handleEmailAlreadyExists(EmailAlreadyExistsException e) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        problem.setProperty("code", "EMAIL_ALREADY_EXISTS");
+        return problem;
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleValidationError(MethodArgumentNotValidException e) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
+        List<Object> errors = e.getBindingResult().getFieldErrors().stream()
+            .map(error -> (Object) Map.of(
+                "field", error.getField(),
+                "message", error.getDefaultMessage()
+            ))
+            .toList();
+        problem.setProperty("code", "VALIDATION_ERROR");
+        problem.setProperty("errors", errors);
+        return problem;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, "Email already exists");
         problem.setProperty("code", "EMAIL_ALREADY_EXISTS");
         return problem;
     }
