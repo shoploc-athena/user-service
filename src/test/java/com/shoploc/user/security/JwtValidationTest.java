@@ -85,13 +85,17 @@ class JwtValidationTest {
 
     @Test
     void serviceRefusesToStartWithAShortSecret() {
-        assertThatThrownBy(() -> new ShoplocProperties("lille", new JwtProperties("too-short", 15)))
+        JwtProperties shortSecret = new JwtProperties("too-short", 15);
+
+        assertThatThrownBy(() -> new ShoplocProperties("lille", shortSecret))
                 .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     void serviceRefusesToStartWithoutCity() {
-        assertThatThrownBy(() -> new ShoplocProperties("", new JwtProperties(SECRET, 15)))
+        JwtProperties jwt = new JwtProperties(SECRET, 15);
+
+        assertThatThrownBy(() -> new ShoplocProperties("", jwt))
                 .isInstanceOf(IllegalStateException.class);
     }
 }
