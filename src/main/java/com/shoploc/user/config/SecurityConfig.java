@@ -2,6 +2,7 @@ package com.shoploc.user.config;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,6 +17,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
 @Configuration
+@EnableConfigurationProperties(ShoplocProperties.class)
 public class SecurityConfig {
 
 	@Bean
