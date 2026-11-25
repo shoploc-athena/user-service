@@ -3,6 +3,7 @@ package com.shoploc.user.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import com.shoploc.user.validation.PasswordUtf8Size;
 
 public class MerchantSignUpRequest {
 	@NotBlank
@@ -10,6 +11,8 @@ public class MerchantSignUpRequest {
 	@Size(max = 255)
 	private String email;
 	@NotBlank
+	@Size(min = 12, max = 72)
+	@PasswordUtf8Size
 	private String password;
 	@NotBlank
 	@Size(max = 100)

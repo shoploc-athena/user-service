@@ -6,8 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
-import com.shoploc.user.dto.AppUserResponse;
 import com.shoploc.user.dto.MerchantSignUpRequest;
+import com.shoploc.user.dto.MerchantSignUpResponse;
+import com.shoploc.user.entity.MerchantRequestStatus;
 import com.shoploc.user.entity.UserRole;
 import com.shoploc.user.entity.UserStatus;
 import com.shoploc.user.exception.EmailAlreadyExistsException;
@@ -33,39 +34,60 @@ class MerchantServiceTest {
 	void shouldSignUpMerchant() {
 		MerchantSignUpRequest request = new MerchantSignUpRequest(
 			"merchant@test.com",
-			"password123",
+			"securepassword123",
 			"John",
 			"Doe",
 			"My Store",
 			"123 Main Street"
 		);
 
-		AppUserResponse response = merchantService.signUpMerchant(request);
+		MerchantSignUpResponse response = merchantService.signUpMerchant(request);
 
 		assertThat(response).isNotNull();
-		assertThat(response.getId()).isNotNull();
-		assertThat(response.getEmail()).isEqualTo("merchant@test.com");
-		assertThat(response.getFirstName()).isEqualTo("John");
-		assertThat(response.getLastName()).isEqualTo("Doe");
-		assertThat(response.getRole()).isEqualTo(UserRole.MERCHANT);
-		assertThat(response.getStatus()).isEqualTo(UserStatus.PENDING);
+		assertThat(response.getRequestId()).isNotNull();
+		assertThat(response.getStatus()).isEqualTo(MerchantRequestStatus.PENDING);
 
-		// Vérifier en base
+		// Verify user in database
 		var user = appUserRepository.findByEmail("merchant@test.com");
 		assertThat(user).isPresent();
+		assertThat(user.get().getFirstName()).isEqualTo("John");
+		assertThat(user.get().getLastName()).isEqualTo("Doe");
+		assertThat(user.get().getRole()).isEqualTo(UserRole.MERCHANT);
+		assertThat(user.get().getStatus()).isEqualTo(UserStatus.PENDING);
 		assertThat(user.get().getEmailVerified()).isFalse();
 
-		// Vérifier la demande d'adhésion
-		var requests = merchantRequestRepository.findAll();
-		assertThat(requests).anyMatch(r -> r.getUser().getId().equals(user.get().getId())
-			&& r.getStoreName().equals("My Store"));
+		// Verify merchant request was created
+		var merchantReq = merchantRequestRepository.findByUser(user.get());
+		assertThat(merchantReq).isPresent();
+		assertThat(merchantReq.get().getId()).isEqualTo(response.getRequestId());
+		assertThat(merchantReq.get().getStoreName()).isEqualTo("My Store");
+		assertThat(merchantReq.get().getStoreAddress()).isEqualTo("123 Main Street");
+	}
+
+	@Test
+	void shouldNormalizeEmailBeforeStorage() {
+		MerchantSignUpRequest request = new MerchantSignUpRequest(
+			"  MERCHANT@TEST.COM  ",
+			"securepassword123",
+			"John",
+			"Doe",
+			"My Store",
+			"123 Main Street"
+		);
+
+		merchantService.signUpMerchant(request);
+
+		// Email should be normalized in database
+		var user = appUserRepository.findByEmail("merchant@test.com");
+		assertThat(user).isPresent();
+		assertThat(user.get().getEmail()).isEqualTo("merchant@test.com");
 	}
 
 	@Test
 	void shouldRejectDuplicateEmail() {
 		MerchantSignUpRequest request1 = new MerchantSignUpRequest(
 			"duplicate@test.com",
-			"password1",
+			"securepassword1",
 			"First",
 			"User",
 			"Store 1",
@@ -75,8 +97,8 @@ class MerchantServiceTest {
 		merchantService.signUpMerchant(request1);
 
 		MerchantSignUpRequest request2 = new MerchantSignUpRequest(
-			"duplicate@test.com",
-			"password2",
+			"DUPLICATE@TEST.COM",
+			"securepassword2",
 			"Second",
 			"User",
 			"Store 2",
@@ -84,34 +106,31 @@ class MerchantServiceTest {
 		);
 
 		assertThatThrownBy(() -> merchantService.signUpMerchant(request2))
-			.isInstanceOf(EmailAlreadyExistsException.class)
-			.hasMessageContaining("Email already exists");
+			.isInstanceOf(EmailAlreadyExistsException.class);
 	}
 
 	@Test
 	void shouldCreateMerchantWithPendingStatus() {
-		MerchantSignUpRequest request = new MerchantSignUpRequest(
+		MerchantSignUpRequest req = new MerchantSignUpRequest(
 			"newmerchant@test.com",
-			"securepass",
+			"securepassword123",
 			"Jane",
 			"Smith",
 			"Boutique",
 			"456 Oak Avenue"
 		);
 
-		AppUserResponse response = merchantService.signUpMerchant(request);
+		MerchantSignUpResponse resp = merchantService.signUpMerchant(req);
 
-		assertThat(response.getStatus()).isEqualTo(UserStatus.PENDING);
+		assertThat(resp.getStatus()).isEqualTo(MerchantRequestStatus.PENDING);
 
-		var user = appUserRepository.findById(response.getId()).get();
-		assertThat(user.getRole()).isEqualTo(UserRole.MERCHANT);
-		assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING);
-		assertThat(user.getEmailVerified()).isFalse();
+		var pendingUser = appUserRepository.findByEmail("newmerchant@test.com").get();
+		assertThat(pendingUser.getRole()).isEqualTo(UserRole.MERCHANT);
+		assertThat(pendingUser.getStatus()).isEqualTo(UserStatus.PENDING);
+		assertThat(pendingUser.getEmailVerified()).isFalse();
 
-		var merchantReq = merchantRequestRepository.findAll().stream()
-			.filter(r -> r.getUser().getId().equals(user.getId()))
-			.findFirst();
-		assertThat(merchantReq).isPresent();
-		assertThat(merchantReq.get().getStoreName()).isEqualTo("Boutique");
+		var pendingReq = merchantRequestRepository.findByUser(pendingUser);
+		assertThat(pendingReq).isPresent();
+		assertThat(pendingReq.get().getStoreName()).isEqualTo("Boutique");
 	}
 }
