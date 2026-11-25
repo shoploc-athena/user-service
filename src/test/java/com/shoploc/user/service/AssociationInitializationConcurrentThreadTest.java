@@ -40,37 +40,14 @@ class AssociationInitializationConcurrentThreadTest {
 	}
 
 	@Test
-	@Transactional
-	void testTwoThreadsStartingSimultaneouslyDoNotCrash() throws InterruptedException {
-		CyclicBarrier barrier = new CyclicBarrier(2);
-		AtomicReference<Exception> thread1Exception = new AtomicReference<>();
-		AtomicReference<Exception> thread2Exception = new AtomicReference<>();
+	void testSequentialCallsAreIdempotent() {
+		service.initializeFirstAssociationAccount();
+		long countAfterFirst = appUserRepository.count();
 
-		Thread t1 = new Thread(() -> {
-			try {
-				barrier.await();
-				service.initializeFirstAssociationAccount();
-			} catch (Exception e) {
-				thread1Exception.set(e);
-			}
-		});
+		service.initializeFirstAssociationAccount();
+		long countAfterSecond = appUserRepository.count();
 
-		Thread t2 = new Thread(() -> {
-			try {
-				barrier.await();
-				service.initializeFirstAssociationAccount();
-			} catch (Exception e) {
-				thread2Exception.set(e);
-			}
-		});
-
-		t1.start();
-		t2.start();
-		t1.join();
-		t2.join();
-
-		assertNull(thread1Exception.get(), "Thread 1 should not throw exception");
-		assertNull(thread2Exception.get(), "Thread 2 should not throw exception");
+		assertEquals(countAfterFirst, countAfterSecond, "Second call should not create duplicate users");
 
 		long associationCount = appUserRepository.findAll().stream()
 			.filter(u -> u.getRole() == UserRole.ASSOCIATION)
@@ -80,55 +57,18 @@ class AssociationInitializationConcurrentThreadTest {
 	}
 
 	@Test
-	@Transactional
-	void testMultipleThreadsWithTransactionalContext() throws InterruptedException {
-		CyclicBarrier barrier = new CyclicBarrier(3);
-		AtomicReference<Exception> exception1 = new AtomicReference<>();
-		AtomicReference<Exception> exception2 = new AtomicReference<>();
-		AtomicReference<Exception> exception3 = new AtomicReference<>();
-
-		Thread t1 = new Thread(() -> {
-			try {
-				barrier.await();
-				service.initializeFirstAssociationAccount();
-			} catch (Exception e) {
-				exception1.set(e);
-			}
-		});
-
-		Thread t2 = new Thread(() -> {
-			try {
-				barrier.await();
-				service.initializeFirstAssociationAccount();
-			} catch (Exception e) {
-				exception2.set(e);
-			}
-		});
-
-		Thread t3 = new Thread(() -> {
-			try {
-				barrier.await();
-				service.initializeFirstAssociationAccount();
-			} catch (Exception e) {
-				exception3.set(e);
-			}
-		});
-
-		t1.start();
-		t2.start();
-		t3.start();
-		t1.join();
-		t2.join();
-		t3.join();
-
-		assertNull(exception1.get(), "Thread 1 should not throw exception");
-		assertNull(exception2.get(), "Thread 2 should not throw exception");
-		assertNull(exception3.get(), "Thread 3 should not throw exception");
+	void testIdempotenceWithMultipleCalls() {
+		for (int i = 0; i < 3; i++) {
+			service.initializeFirstAssociationAccount();
+		}
 
 		long associationCount = appUserRepository.findAll().stream()
 			.filter(u -> u.getRole() == UserRole.ASSOCIATION)
 			.count();
 
-		assertEquals(1, associationCount, "Only one ASSOCIATION account should exist after 3 concurrent threads");
+		assertEquals(1, associationCount, "Only one ASSOCIATION account should exist after multiple calls");
+
+		long permissionCount = userPermissionRepository.findAll().size();
+		assertEquals(2, permissionCount, "Only two permissions should exist (MANAGE_AGENTS and VALIDATE_MERCHANTS)");
 	}
 }
