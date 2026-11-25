@@ -18,6 +18,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 @Configuration
 public class SecurityConfig {
 
+	@Bean
 	public JwtEncoder jwtEncoder(ShoplocProperties properties) {
 		byte[] keyBytes = properties.jwt().secret().getBytes();
 		OctetSequenceKey key = new OctetSequenceKey.Builder(keyBytes).build();
@@ -25,6 +26,7 @@ public class SecurityConfig {
 		return new NimbusJwtEncoder(jwkSource);
 	}
 
+	@Bean
 	public JwtDecoder jwtDecoder(ShoplocProperties properties) {
 		byte[] keyBytes = properties.jwt().secret().getBytes();
 		SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "HmacSHA256");
