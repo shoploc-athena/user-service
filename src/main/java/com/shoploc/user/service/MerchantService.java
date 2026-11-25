@@ -33,7 +33,7 @@ public class MerchantService {
 
 	@Transactional
 	public MerchantSignUpResponse signUpMerchant(MerchantSignUpRequest request) {
-		String normalizedEmail = request.getEmail().toLowerCase(Locale.ROOT);
+		String normalizedEmail = request.getEmail().trim().toLowerCase(Locale.ROOT);
 
 		Optional<AppUser> existing = appUserRepository.findByEmail(normalizedEmail);
 		if (existing.isPresent()) {
