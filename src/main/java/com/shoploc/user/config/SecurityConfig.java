@@ -68,6 +68,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/api/users/auth/login", "/api/users/merchants").permitAll()
 						.requestMatchers("/actuator/health/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+						.requestMatchers("/api/users/merchant-requests/**").hasAuthority("PERM_VALIDATE_MERCHANTS")
 						.anyRequest().authenticated())
 				.oauth2ResourceServer(oauth2 -> oauth2
 						.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
