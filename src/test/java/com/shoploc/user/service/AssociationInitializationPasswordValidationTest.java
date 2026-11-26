@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,7 @@ import com.shoploc.user.testcontainers.TestcontainersConfiguration;
 @SpringBootTest
 @Transactional
 @Import(TestcontainersConfiguration.class)
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 @TestPropertySource(properties = {
 	"ASSOCIATION_ADMIN_EMAIL=admin@association.com",
 	"ASSOCIATION_ADMIN_PASSWORD=short"
