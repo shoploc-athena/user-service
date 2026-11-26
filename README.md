@@ -74,6 +74,24 @@ Required environment variables (the service refuses to start without them):
 | `CITY` | City of this instance, written in every token and checked on each request. |
 | `JWT_EXPIRATION_MINUTES` | Optional, 15 by default. |
 
+## First association account initialization
+
+On first startup, the service automatically creates the association admin account if the following environment variables are provided:
+
+- `ASSOCIATION_ADMIN_EMAIL`: email of the association admin
+- `ASSOCIATION_ADMIN_PASSWORD`: password (minimum 12 characters required)
+
+**Important:** These variables must never be committed. Set them in your local `.env` file or via your deployment platform. See [shoploc-infra documentation](https://github.com/shoploc-athena/shoploc-infra) for setup instructions.
+
+Example:
+```bash
+export ASSOCIATION_ADMIN_EMAIL="admin@association.local"
+export ASSOCIATION_ADMIN_PASSWORD="SecurePassphrase123!"
+./mvnw spring-boot:run
+```
+
+The account is created once and never modified on subsequent startups. If the credentials are absent or the password is too short, no account is created and the service starts normally.
+
 ## Branching and commits
 
 - `main`: release branch only.
