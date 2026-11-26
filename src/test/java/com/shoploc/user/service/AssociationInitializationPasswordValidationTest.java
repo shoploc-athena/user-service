@@ -18,7 +18,7 @@ import com.shoploc.user.testcontainers.TestcontainersConfiguration;
 @SpringBootTest
 @Transactional
 @Import(TestcontainersConfiguration.class)
-@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 @TestPropertySource(properties = {
 	"ASSOCIATION_ADMIN_EMAIL=admin@association.com",
 	"ASSOCIATION_ADMIN_PASSWORD=short"
