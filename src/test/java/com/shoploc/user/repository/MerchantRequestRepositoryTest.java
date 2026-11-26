@@ -30,6 +30,9 @@ class MerchantRequestRepositoryTest {
 
 	@BeforeEach
 	void setup() {
+		repository.deleteAll();
+		appUserRepository.deleteAll();
+
 		merchant = new AppUser();
 		merchant.setEmail("merchant@example.com");
 		merchant.setPasswordHash("pass");
