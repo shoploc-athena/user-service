@@ -74,6 +74,23 @@ Required environment variables (the service refuses to start without them):
 | `CITY` | City of this instance, written in every token and checked on each request. |
 | `JWT_EXPIRATION_MINUTES` | Optional, 15 by default. |
 
+## Merchant decision
+
+Only users with the `VALIDATE_MERCHANTS` right can use these routes (JWT in the `Authorization: Bearer` header).
+
+* `POST /api/users/merchant-requests/{id}/accept`: accepts the request, the merchant account becomes `ACTIVE` and can log in.
+* `POST /api/users/merchant-requests/{id}/reject` with `{ "refusalReason": "..." }` (required, 1 to 255 characters): refuses the request, the account stays `PENDING` and the reason is shown to the merchant at login.
+
+Both routes fill `reviewedBy` (from the token) and `reviewedAt`, and update the request and the account in one transaction.
+
+| Status | Meaning |
+|---|---|
+| `200` | updated request |
+| `400` | reason missing or too long (`VALIDATION_ERROR`) |
+| `401` / `403` | no token / right `VALIDATE_MERCHANTS` missing |
+| `404` | unknown request (`MERCHANT_REQUEST_NOT_FOUND`) |
+| `409` | request already decided (`MERCHANT_REQUEST_ALREADY_DECIDED`) or decided at the same time by someone else (`CONCURRENT_UPDATE`) |
+
 ## First association account initialization
 
 On first startup, the service automatically creates the association admin account if the following environment variables are provided:
